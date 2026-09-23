@@ -5309,6 +5309,12 @@ static void corpus_lay(Corpus H, u64 size) {
   if (cap <= CUBE) {
     err_fail("the GPU span is under the rings, stacks and a page per lane");
   }
+#if BEND_CUDA
+  if (io_gpu && (cuMemsetD8((CUdeviceptr)(uintptr_t)H, 0, STAK_OFF * 8)
+    != CUDA_SUCCESS || cuCtxSynchronize() != CUDA_SUCCESS)) {
+    err_fail("device fault");
+  }
+#endif
   cap = cap < ~0u ? cap : ~0u - 1;
   u64 at = HEAP_OFF + (cap << PAGE_BITS);
   for (u32 c = 0; c < NCLS_ALL; c += 1) {
@@ -5347,12 +5353,6 @@ static Corpus corpus_setup(bool gpu, long threads, u64 bytes) {
   u64 size   = (gpu && bytes != 0 ? bytes : dflt) & ~16383ull;
   CORPUS     = gpu ? gpu_map(size) : corpus_map(size);
   Corpus H   = CORPUS;
-#if BEND_CUDA
-  if (gpu) {
-    cuMemsetD8((CUdeviceptr)(uintptr_t)H, 0, STAK_OFF * 8);
-    cuCtxSynchronize();
-  }
-#endif
   corpus_lay(H, size);
   memcpy(H + STAT_OFF, STAT_IMG, STAT_LEN * sizeof(u64));
   a32_store(a32_at(H, H_BUMP), 1);
