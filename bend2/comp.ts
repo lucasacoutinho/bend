@@ -5010,7 +5010,7 @@ static u64 gpu_hash(void) {
 
 #if BEND_METAL
 
-static bool gpu_probe(void) {
+static bool gpu_probe(bool asked) {
   return (gpu_dev = MTLCreateSystemDefaultDevice()) != nil;
 }
 
@@ -5117,15 +5117,15 @@ static void gpu_shape(int units) {
   CUBE_LOG = 31 - CLZ(units < 16 ? 16 : units > 128 ? 128 : units);
 }
 
-static bool gpu_probe(void) {
+static bool gpu_probe(bool asked) {
   int       managed = 0;
   CUcontext ctx;
   // one stream, so one hardware queue: the default 8 each cost a channel
   // at context creation and teardown, about half of the startup
   setenv("CUDA_DEVICE_MAX_CONNECTIONS", "1", 0);
   if (cuInit(0) == CUDA_SUCCESS && cuDeviceGet(&gpu_dev, 0) == CUDA_SUCCESS) {
-    cuDeviceGetAttribute(&managed,
-      CU_DEVICE_ATTRIBUTE_CONCURRENT_MANAGED_ACCESS, gpu_dev);
+    cuDeviceGetAttribute(&managed, asked ? CU_DEVICE_ATTRIBUTE_MANAGED_MEMORY
+      : CU_DEVICE_ATTRIBUTE_CONCURRENT_MANAGED_ACCESS, gpu_dev);
   }
   int l2 = 1 << 23;
   cuDeviceGetAttribute(&l2, CU_DEVICE_ATTRIBUTE_L2_CACHE_SIZE, gpu_dev);
@@ -5235,7 +5235,7 @@ static void gpu_pass(u32 f) {
 
 #else
 
-#define gpu_probe() false
+#define gpu_probe(a) false
 #define gpu_make(p) true
 #define gpu_span()  0
 #define gpu_load(b)
@@ -6161,7 +6161,7 @@ int main(int argc, char** argv) {
       printf(CLI_HELP, argv[0]);
       return 0;
     } else if (strcmp(a, "--gpu-build") == 0) {
-      if (gpu_probe() && !gpu_make(gpu_path())) {
+      if (gpu_probe(true) && !gpu_make(gpu_path())) {
         cli_fail("cannot write ", gpu_path());
       }
       return 0;
@@ -6190,7 +6190,7 @@ int main(int argc, char** argv) {
       io_argv[io_argc++] = argv[i];
     }
   }
-  bool dev = gpu != 0 && BANGS != 0 && gpu_probe();
+  bool dev = gpu != 0 && BANGS != 0 && gpu_probe(gpu == 1);
   if (gpu == 1 && BANGS != 0 && !dev) {
     cli_fail("--gpu on, but this binary found no GPU device", NULL);
   }
