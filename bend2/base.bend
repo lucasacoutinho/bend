@@ -41,15 +41,18 @@ type List<a, -A: Kind(a)> is Kind(a):
   Nil{}
   Con{head: A, tail: List<a, A>}
 
-law Word:
-  for n: Nat
-  Data
-
 type Word.Nil is Data:
   WNil{}
 
 type Word.Con<-p: Nat> is Data:
   WCon{head: Bool, tail: Word(p)}
+
+def Word(n: Nat) -> Data:
+  match n:
+    case 0n:
+      Word.Nil
+    case 1n+p:
+      Word.Con<p>
 
 type U32 is Data:
   U32{data: Word(32n)}
@@ -112,35 +115,16 @@ type IO.OP<-R: Type> is Type:
   Emit{value: R}
   Halt{code: U32, message: String}
 
-law Pair:
-  for -A: Type
-  for -B: Type
-  Type
-
-law IO:
-  for -A: Type
-  Type
-
 type App<-S: Type> is Type:
   App{view: S -> Pair(S, Image), tick: List<Event> -> S -> IO(Maybe<S>)}
 
 # Defs
 # ====
 
-# Word
-# ----
-
-def Word(n):
-  match n:
-    case 0n:
-      Word.Nil
-    case 1n+p:
-      Word.Con<p>
-
 # Pair
 # ----
 
-def Pair(A, B):
+def Pair(-A: Type, -B: Type) -> Type:
   Sigma<&1, &1, A, _ => B>
 
 def Exists(-A: Type, -B: @-x: A -> Type) -> Type:
@@ -160,7 +144,7 @@ def Pair.snd(-A: Type, -B: Type, p: A & B) -> B:
 # Effects
 # -------
 
-def IO(A):
+def IO(-A: Type) -> Type:
   @-R: Type ->
   @k: (A -> IO.OP<R>) ->
   IO.OP<R>
@@ -221,20 +205,20 @@ def IO.now() -> IO(Nat):
   import "./effs/now.js"
 
 def Chan.new(-A: Type, room: U32) -> IO(Chan(A)):
-  import "./effs/chan_new.c"
-  import "./effs/chan_new.js"
+  import "./effs/chan.c"
+  import "./effs/chan.js"
 
 def Chan.send(-A: Type, chan: Chan(A), value: A) -> IO(Bool):
-  import "./effs/chan_send.c"
-  import "./effs/chan_send.js"
+  import "./effs/chan.c"
+  import "./effs/chan.js"
 
 def Chan.recv(-A: Type, chan: Chan(A)) -> IO(Maybe<&1, A>):
-  import "./effs/chan_recv.c"
-  import "./effs/chan_recv.js"
+  import "./effs/chan.c"
+  import "./effs/chan.js"
 
 def Chan.close(-A: Type, chan: Chan(A)) -> IO(Unit):
-  import "./effs/chan_close.c"
-  import "./effs/chan_close.js"
+  import "./effs/chan.c"
+  import "./effs/chan.js"
 
 def IO.fork.go(-A: Type, act: IO(A), chan: Chan(A)) -> IO(Chan(A)):
   +c = chan

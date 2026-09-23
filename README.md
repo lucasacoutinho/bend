@@ -113,6 +113,9 @@ With `LAWS.bend`, *"make no mistakes"* becomes enforceable.
 curl -fsSL https://bend-lang.com/install.sh | sh
 ```
 
+This `bend` ignores a project's `bunfig.toml` and `.env`; `bun bend2/main.ts`
+from a checkout reads them, so check untrusted code with `bend`.
+
 ### 2. Tell your agent to use Bend:
 
 Add this to your `AGENTS.md`:
@@ -221,7 +224,7 @@ def add_zero(x):
 - No type classes, no traits, and no macros beyond compile-time templates.
 - Bend has no tactics or proof search; proving theorems takes extra effort.
 - Values are affine: closures and arrays cannot be shared.
-- Recursion must be terminating. (Use `@unsafe` to disable this checker.)
+- Recursion must be terminating. (Use `@unsafe`, or `def f?(..)`, to disable this checker.)
 - Computed matches (`match f(x)`) aren't supported. Must split it manually.
 - There is no syntax for if-then-else: a branch is a match on True and False.
 - Numbers are Nat, U32 and F32 only: no U64, I64 or F64 (Metal has no f64).
@@ -253,3 +256,21 @@ Most of these limitations are being addressed and will improve over time!
 ```
 
 **BEND IS YOUNG. EXPECT BUGS AND [REPORT THEM](https://github.com/bendlang/bend/issues).**
+
+# Credits
+
+Bend is created by [Victor Taelin](https://github.com/VictorTaelin) and built
+by the team:
+
+- [Lorenzo W Battistela](https://github.com/Lorenzobattistela)
+- [Paulo J Cavalcanti](https://github.com/pjcavalcanti)
+- [Nico](https://github.com/nicolas-abril)
+- [Vanessa Ostroski](https://github.com/Ostrowskii)
+- [Vitor Chiarelli Neves](https://github.com/Sipher)
+- [Alex Van de Sande](https://x.com/avsa)
+
+If you were part of this and your name is missing, please get in touch so we
+can add it here.
+
+Thanks to [Ayush Somani](https://ayushsomani.me/) for reserving the
+`bend-lang` name for us.
